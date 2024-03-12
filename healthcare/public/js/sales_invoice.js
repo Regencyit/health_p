@@ -32,8 +32,26 @@ frappe.ui.form.on('Sales Invoice', {
 			frm.set_value("customer", "");
 			frm.set_df_property("customer", "read_only", 0);
 		}
+	},
+
+	service_unit: function (frm) {
+		set_service_unit(frm);
+	},
+
+	items_add: function (frm) {
+		set_service_unit(frm);
 	}
 });
+
+var set_service_unit = function (frm) {
+	if (frm.doc.service_unit && frm.doc.items.length > 0) {
+		frm.doc.items.forEach((item) => {
+			if (!item.service_unit) {
+				frappe.model.set_value(item.doctype, item.name, "service_unit", frm.doc.service_unit);
+			}
+		});
+	}
+};
 
 var get_healthcare_services_to_invoice = function(frm) {
 	var me = this;
@@ -140,6 +158,7 @@ var make_list_row= function(columns, invoice_healthcare_services, result={}) {
 var set_primary_action= function(frm, dialog, $results, invoice_healthcare_services) {
 	var me = this;
 	dialog.set_primary_action(__('Add'), function() {
+		frm.clear_table('items');
 		let checked_values = get_checked_values($results);
 		if(checked_values.length > 0){
 			if(invoice_healthcare_services) {

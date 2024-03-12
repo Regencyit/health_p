@@ -116,6 +116,7 @@ doc_events = {
 	"Sales Invoice": {
 		"on_submit": "healthcare.healthcare.utils.manage_invoice_submit_cancel",
 		"on_cancel": "healthcare.healthcare.utils.manage_invoice_submit_cancel",
+		"validate": "healthcare.healthcare.utils.manage_invoice_validate",
 	},
 	"Company": {
 		"after_insert": "healthcare.healthcare.utils.create_healthcare_service_unit_tree_root",
@@ -132,6 +133,7 @@ scheduler_events = {
 	],
 	"daily": [
 		"healthcare.healthcare.doctype.patient_appointment.patient_appointment.update_appointment_status",
+		"healthcare.healthcare.doctype.fee_validity.fee_validity.update_validity_status",
 	],
 }
 
@@ -283,3 +285,7 @@ has_website_permission = {
 standard_queries = {
 	"Healthcare Practitioner": "healthcare.healthcare.doctype.healthcare_practitioner.healthcare_practitioner.get_practitioner_list"
 }
+
+treeviews = [
+	"Healthcare Service Unit",
+]

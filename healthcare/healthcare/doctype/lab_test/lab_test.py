@@ -127,8 +127,6 @@ def create_multiple(doctype, docname):
 		frappe.msgprint(
 			_("Lab Test(s) {0} created successfully").format(lab_test_created), indicator="green"
 		)
-	else:
-		frappe.msgprint(_("No Lab Tests created"))
 
 
 def create_lab_test_from_encounter(encounter):
@@ -142,7 +140,7 @@ def create_lab_test_from_encounter(encounter):
 				template = get_lab_test_template(item.lab_test_code)
 				if template:
 					lab_test = create_lab_test_doc(
-						item.invoiced, encounter.practitioner, patient, template, encounter.company
+						encounter.practitioner, patient, template, encounter.company, item.invoiced
 					)
 					lab_test.save(ignore_permissions=True)
 					frappe.db.set_value("Lab Prescription", item.name, "lab_test_created", 1)
@@ -170,7 +168,7 @@ def create_lab_test_from_invoice(sales_invoice):
 				template = get_lab_test_template(item.item_code)
 				if template:
 					lab_test = create_lab_test_doc(
-						True, invoice.ref_practitioner, patient, template, invoice.company
+						invoice.ref_practitioner, patient, template, invoice.company, True, item.service_unit
 					)
 					if item.reference_dt == "Lab Prescription":
 						lab_test.prescription = item.reference_dn
@@ -192,7 +190,9 @@ def get_lab_test_template(item):
 	return False
 
 
-def create_lab_test_doc(invoiced, practitioner, patient, template, company):
+def create_lab_test_doc(
+	practitioner, patient, template, company, invoiced=False, service_unit=None
+):
 	lab_test = frappe.new_doc("Lab Test")
 	lab_test.invoiced = invoiced
 	lab_test.practitioner = practitioner
@@ -207,6 +207,7 @@ def create_lab_test_doc(invoiced, practitioner, patient, template, company):
 	lab_test.lab_test_group = template.lab_test_group
 	lab_test.result_date = getdate()
 	lab_test.company = company
+	lab_test.service_unit = service_unit
 	return lab_test
 
 
@@ -273,7 +274,7 @@ def create_sample_doc(template, patient, invoice, company=None):
 
 		if sample_exists:
 			# update sample collection by adding quantity
-			sample_collection = frappe.get_doc("Sample Collection", sample_exists[0][0])
+			sample_collection = frappe.get_doc("Sample Collection", sample_exists)
 			quantity = int(sample_collection.sample_qty) + int(template.sample_qty)
 			if template.sample_details:
 				sample_details = sample_collection.sample_details + "\n-\n" + _("Test :")
